@@ -6,11 +6,20 @@ async function main() {
     const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true })
     try {
         await client.connect();
-        //await listDatabases(client);
+        await updateAllListingsParameters(client,"sample_airbnb","listingsAndReviews","comment")
+        /* 
+        
+        await listDatabases(client);
+        await findOneListingByName(client,"sample_airbnb","listingsAndReviews","Cozy Cottage");
+
+        await upsertListingByName(client,"sample_airbnb","listingsAndReviews","Cozy Cottage",{name:"Cozy Cottage",property_type: 'House',bedrooms:7,beds:8})
+
+        await updateListingByName(client,"sample_airbnb","listingsAndReviews","Infinite Views",{bedrooms:6,beds:8})
+
         await findListingsbyParametersandValues(client, "sample_airbnb", "listingsAndReviews",
             "beds", 5)
-        // await findOneListingByName(client,"sample_airbnb","listingsAndReviews","Infinite Views");
-        /* await createListing(client,"sample_airbnb","listingsAndReviews",{
+        await findOneListingByName(client,"sample_airbnb","listingsAndReviews","Infinite Views");
+        await createListing(client,"sample_airbnb","listingsAndReviews",{
             name:"Lovely loft",
             summary:"A charming loft in Paris",
             bedrooms:1,
@@ -51,6 +60,36 @@ async function main() {
     }
 }
 main().catch(console.err);
+/**
+ * Update all parameters of the Listings
+ * @param {*} client 
+ * @param {*} dbname 
+ * @param {*} nameOfcollection 
+ * @param {*} listName 
+ */
+async function updateAllListingsParameters(client, dbname, nameOfcollection, listName){
+    const result = await client.db(dbname).collection(nameOfcollection).updateMany(
+        {[listName]:{$exists:false}},
+        {$set:{[listName]:"Unknown"}});
+        console.log(`${result.matchedCount} document(s) matched the query criteria`);
+        console.log(`${result.modifiedCount} documents was/were updated `);
+}
+
+async function upsertListingByName(client, dbname, nameOfcollection, nameOfListing, updateListing) {
+    const result = await client.db(dbname).collection(nameOfcollection).updateOne(
+        { name: nameOfListing },
+        { $set: updateListing },
+        { upsert: true }
+    );
+    console.log(`${result.matchedCount} document(s) mached the query criteria`)
+
+    if (result.upsertedCount > 0) {
+        console.log(`One document was inseted with the id ${result.upsertedId._id}`);
+    }
+    else {
+console.log(`${result.modifiedCount} document(s) was/were updated`)
+    }
+}
 
 async function findListingsbyParametersandValues(client, dbname, nameOfcollection, listName, value) {
     const cursor = client.db(dbname).collection(nameOfcollection).find({ [listName]: value })
@@ -64,6 +103,14 @@ async function findListingsbyParametersandValues(client, dbname, nameOfcollectio
     } else {
         console.log(`No listing found with the name '${listName}' and value ${value}`)
     }
+}
+async function updateListingByName(client, dbname, nameOfcollection, nameOfListing, updateListing) {
+    const result = await client.db(dbname).collection(nameOfcollection).updateOne(
+        { name: nameOfListing },
+        { $set: updateListing }
+    );
+    console.log(`${result.matchedCount} document(s) matched the query criteria`);
+    console.log(`${result.modifiedCount} document(s) was/were updated`);
 }
 
 async function findOneListingByName(client, dbname, nameOfcollection, nameOfListing) {
