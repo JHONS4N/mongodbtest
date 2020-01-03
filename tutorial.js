@@ -5,12 +5,15 @@ async function main() {
     const uri = "mongodb://0.0.0.0:27017/thepolyglotdeveloper";
     const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true })
     try {
+
         await client.connect();
-        await updateAllListingsParameters(client,"sample_airbnb","listingsAndReviews","comment")
+        await deleteOneListingByParameterandValue(client,"sample_airbnb","listingsAndReviews","Cozy Cottage");
+
         /* 
         
         await listDatabases(client);
         await findOneListingByName(client,"sample_airbnb","listingsAndReviews","Cozy Cottage");
+        await updateAllListingsParameters(client,"sample_airbnb","listingsAndReviews","comment")
 
         await upsertListingByName(client,"sample_airbnb","listingsAndReviews","Cozy Cottage",{name:"Cozy Cottage",property_type: 'House',bedrooms:7,beds:8})
 
@@ -60,6 +63,12 @@ async function main() {
     }
 }
 main().catch(console.err);
+
+
+async function deleteOneListingByParameterandValue(client, dbname, nameOfcollection,listName,value ){
+    const result = await client.db(dbname).collection(nameOfcollection).deleteOne({[listName]:value});
+    console.log(`${result.deletedCount} document(s) was/were deleted`)
+}
 /**
  * Update all parameters of the Listings
  * @param {*} client 
