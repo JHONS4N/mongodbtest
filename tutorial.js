@@ -1,17 +1,19 @@
 const {MongoClient}=require ('mongodb');
 
 async function main (){
-    const uri ="mongodb+srv://S4NAdmin:S4NAdmin@s4ntest-dtujr.mongodb.net/test?retryWrites=true&w=majority";
-
+    //const uri ="mongodb+srv://S4NAdmin:S4NAdmin@s4ntest-dtujr.mongodb.net/test?retryWrites=true&w=majority";
+    const uri =  "mongodb://0.0.0.0:27017/thepolyglotdeveloper";
     const client = new MongoClient(uri,{useNewUrlParser:true,useUnifiedTopology:true})
     try{
         await client.connect();
+        await findOneListingByName(client,"sample_airbnb","listingsAndReviews","Infinite Views");
         /* await createListing(client,{
             name:"Lovely loft",
             summary:"A charming loft in Paris",
             bedrooms:1,
             bathrooms:1
-        }); */
+            +
+        }); 
 
         await createdMultipleListings(client,[
         {
@@ -37,7 +39,7 @@ async function main (){
             beds:1,
             last_review: new Date()
         },
-    ]);
+    ]);*/
 
     }catch(e){
         console.error(e);
@@ -47,6 +49,16 @@ async function main (){
     }
 }
 main().catch(console.err);
+
+async function findOneListingByName(client,dbname,nameOfcollection,nameOfListing){
+    const result= await client.db(dbname).collection(nameOfcollection).findOne({name:nameOfListing});
+    if(result){
+console.log(`Found a listing in the collection with the name'${nameOfListing}':`);
+console.log(result);
+    }else{
+        console.log(`No listing found with the name '${nameOfListing}'`)
+    }
+}
 
 async function createdMultipleListings(client,newListings){
     const result =await  client.db("sample_airbnb").collection("listingsAndReviews").insertMany(newListings)
